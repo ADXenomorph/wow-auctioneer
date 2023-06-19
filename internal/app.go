@@ -147,8 +147,7 @@ func (app *App) SendMessage(text string) error {
         return err
     }
 
-    app.logger.Infof("Telegram message %q was sent", text)
-    app.logger.Infof("Telegram response JSON: %s", string(body))
+    app.logger.Infof("Telegram message sent")
 
     return nil
 }
