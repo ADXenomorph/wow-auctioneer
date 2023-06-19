@@ -1,4 +1,4 @@
-name: Imgame backend sandbox
+name: Auctioneer scheduled scan
 
 on:
   schedule:
