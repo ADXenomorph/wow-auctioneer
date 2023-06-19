@@ -159,13 +159,13 @@ func (app *App) ScanForOutliers(server string) (*DecoratedAuctionData, error) {
         return nil, errors.Wrap(err, "app.GetAuctions")
     }
 
-    auctions = auctions.FilterByBuyout(50_000_00_00)
+    auctions = auctions.FilterByBuyout(30_000_00_00)
     decoratedAuctions, err := app.DecorateAuctionData(auctions)
     if err != nil {
         return nil, errors.Wrap(err, "app.DecorateAuctionData")
     }
-    //decoratedAuctions = decoratedAuctions.FilterByName("Bands of Purified Purpose")
-    decoratedAuctions = decoratedAuctions.FilterByIlvl(415, 441)
+    //decoratedAuctions = decoratedAuctions.FilterByName("Devoted Warden")
+    decoratedAuctions = decoratedAuctions.FilterByIlvl(400, 450)
     decoratedAuctions = app.FindBOEOutliers(decoratedAuctions)
 
     return decoratedAuctions, nil

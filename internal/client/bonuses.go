@@ -1,6 +1,8 @@
 package client
 
 import (
+    "encoding/json"
+
     "github.com/levigross/grequests"
     "github.com/pkg/errors"
 )
@@ -23,7 +25,7 @@ func (c *client) GetBonuses() (*Bonuses, error) {
     }
 
     var result map[string]LevelBonus
-    if err := response.JSON(result); err != nil {
+    if err := json.Unmarshal(response.Bytes(), &result); err != nil {
         return nil, errors.Wrapf(err, "getBlizzRealms JSON")
     }
 
@@ -36,30 +38,6 @@ func (c *client) GetBonuses() (*Bonuses, error) {
 
     return &Bonuses{LevelBonuses: bonuses}, nil
 }
-
-//func NewBonuses(path string) *Bonuses {
-//    jsonStr, err := ioutil.ReadFile(path)
-//    if err != nil {
-//        panic(err)
-//    }
-//
-//    var result map[string]LevelBonus
-//    err = json.Unmarshal(jsonStr, &result)
-//    if err != nil {
-//        panic(err)
-//    }
-//
-//    bonuses := make(map[int]int, 0)
-//    for _, val := range result {
-//        if val.Level != 0 {
-//            bonuses[val.ID] = val.Level
-//        }
-//    }
-//
-//    return &Bonuses{
-//        LevelBonuses: bonuses,
-//    }
-//}
 
 func (b *Bonuses) FindIlvlBonus(ids []int) int {
     for _, id := range ids {

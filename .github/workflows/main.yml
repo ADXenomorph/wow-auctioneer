@@ -29,4 +29,5 @@ jobs:
           AUCTIONEER_TELEGRAM_TOKEN: '${{ secrets.TELEGRAM_TOKEN }}'
           AUCTIONEER_TELEGRAM_CHAT_ID: '${{ secrets.TELEGRAM_CHAT_ID }}'
         run: |
+          rm .cache/933a55df9770b83eb077e68fdd08203a.cache
           ./wow-auctioneer scan --server "Argent Dawn" -t

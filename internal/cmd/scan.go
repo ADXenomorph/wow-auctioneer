@@ -56,7 +56,7 @@ var (
                 return nil
             }
 
-            msg := decoratedAuctions.ToString()
+            msg := decoratedAuctions.String()
             fmt.Println(msg)
 
             if withTelegram {

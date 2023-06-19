@@ -19,7 +19,7 @@ import (
 
 const (
     layoutUS = "Mon, 2 Jan 2006 15:04:05 MST"
-    timeOut  = time.Second * 10
+    timeOut  = time.Second * 30
 )
 
 type Client interface {
@@ -72,7 +72,6 @@ func (c *client) makeGetRequest(requestURL string, ro *grequests.RequestOptions)
         ro.Headers,
     ))
 
-    ro.RequestTimeout = 30 * time.Second
     response, err := c.session.Get(requestURL, ro)
     if err != nil {
         return nil, errors.Wrapf(err, "makeGetRequest")
