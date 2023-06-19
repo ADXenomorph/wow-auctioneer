@@ -22,5 +22,10 @@ jobs:
           key: auctioner-file-cache
 
       - name: Run scan
+        env:
+          AUCTIONEER_BLIZZARD_CLIENT_SECRET: '${{ secrets.BLIZZARD_CLIENT_SECRET }}'
+          AUCTIONEER_BLIZZARD_CLIENT_ID: '${{ secrets.BLIZZARD_CLIENT_ID }}'
+          AUCTIONEER_TELEGRAM_TOKEN: '${{ secrets.TELEGRAM_TOKEN }}'
+          AUCTIONEER_TELEGRAM_CHAT_ID: '${{ secrets.TELEGRAM_CHAT_ID }}'
         run: |
           ./wow-auctioneer scan --server "Argent Dawn" -t
