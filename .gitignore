@@ -17,3 +17,7 @@
 
 # IDE and something special
 .idea
+
+vendor
+.cache
+wow-auctioneer
