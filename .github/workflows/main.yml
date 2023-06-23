@@ -16,7 +16,7 @@ jobs:
         run: |
           mkdir -p .cache
 
-      - name: Cache composer cache
+      - name: Cache
         uses: actions/cache@v2
         with:
           path: .cache

@@ -148,7 +148,7 @@ func (g ItemGroup) FindOutlier() *DecAucItem {
     nextPrice := g.findNextPriceHigherThan(res.Buyout)
     if nextPrice != 0 {
         res.PriceDiff = nextPrice - res.Buyout
-        res.PriceDiffPercent = float64(res.Buyout) * 100 / float64(nextPrice)
+        res.PriceDiffPercent = 100 - (float64(res.Buyout) * 100 / float64(nextPrice))
     }
 
     return res
