@@ -78,7 +78,7 @@ func (c *client) GetAuctionData(realmID int) (*AuctionData, error) {
         return nil, errors.Wrapf(err, "GetAuctionData Parse")
     }
     auctionData.ExpiresAt = updatedAtParsed.Add(time.Hour).Unix()
-    c.log.Infof("Auction expires at %v", auctionData.ExpiresAt)
+    c.log.Infof("Auction updated at %v", updatedAtParsed)
 
     return auctionData, nil
 }
