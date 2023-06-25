@@ -151,5 +151,9 @@ func (g ItemGroup) FindOutlier() *DecAucItem {
         res.PriceDiffPercent = 100 - (float64(res.Buyout) * 100 / float64(nextPrice))
     }
 
+    if res.PriceDiffPercent < 5 {
+        return nil
+    }
+
     return res
 }
