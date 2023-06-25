@@ -15,32 +15,32 @@ import (
 )
 
 type App struct {
-    Bclient client.Client
+    bclient client.Client
     cfg     *Config
     logger  *logrus.Logger
 }
 
 func NewApp(bclient client.Client, cfg *Config, logger *logrus.Logger) *App {
     return &App{
-        Bclient: bclient,
+        bclient: bclient,
         cfg:     cfg,
         logger:  logger,
     }
 }
 
 func (app *App) Setup() error {
-    token, err := app.Bclient.MakeBlizzAuth()
+    token, err := app.bclient.MakeBlizzAuth()
     if err != nil {
         return errors.Wrap(err, "blizzClient.MakeBlizzAuth")
     }
 
-    app.Bclient.SetToken(token)
+    app.bclient.SetToken(token)
 
     return nil
 }
 
 func (app *App) GetRealmId(realmName string) (int, error) {
-    return app.Bclient.GetRealmID(realmName)
+    return app.bclient.GetRealmID(realmName)
 }
 
 func (app *App) GetAuctions(realmName string) (*client.AuctionData, error) {
@@ -54,11 +54,11 @@ func (app *App) GetAuctions(realmName string) (*client.AuctionData, error) {
         return nil, err
     }
 
-    return app.Bclient.GetAuctionData(realmId)
+    return app.bclient.GetAuctionData(realmId)
 }
 
 func (app *App) SearchItems(name string) error {
-    _, err := app.Bclient.SearchItem(name)
+    _, err := app.bclient.SearchItem(name)
     return err
 }
 
@@ -72,14 +72,14 @@ func (app *App) DecorateAuctionData(data *client.AuctionData) (*DecoratedAuction
         itemIds = append(itemIds, auc.Item.ID)
     }
 
-    items, err := app.Bclient.SearchItemsByIds(itemIds)
+    items, err := app.bclient.SearchItemsByIds(itemIds)
     if err != nil {
         err = errors.Wrap(err, "app DecorateAuctionData")
         app.logger.Error(err)
         return nil, err
     }
 
-    bonuses, err := app.Bclient.GetBonuses()
+    bonuses, err := app.bclient.GetBonuses()
     if err != nil {
         err = errors.Wrap(err, "app DecorateAuctionData GetBonuses")
         app.logger.Error(err)
@@ -163,7 +163,7 @@ func (app *App) ScanForOutliers(server string) (*DecoratedAuctionData, error) {
     if err != nil {
         return nil, errors.Wrap(err, "app.DecorateAuctionData")
     }
-    //decoratedAuctions = decoratedAuctions.FilterByName("Devoted Warden")
+    // decoratedAuctions = decoratedAuctions.FilterByName("Devoted Warden")
     decoratedAuctions = decoratedAuctions.FilterByIlvl(400, 450)
     decoratedAuctions = app.FindBOEOutliers(decoratedAuctions)
 
