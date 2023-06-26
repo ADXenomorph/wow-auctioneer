@@ -12,10 +12,12 @@ import (
 
 type DecAucItem struct {
     client.AuctionsDetail
-    Name             string  `json:"name"`
-    Ilvl             int     `json:"ilvl"`
-    PriceDiff        int     `json:"price_diff"`
-    PriceDiffPercent float64 `json:"price_diff_percent"`
+    Name                   string  `json:"name"`
+    Ilvl                   int     `json:"ilvl"`
+    PriceDiff              int     `json:"price_diff"`
+    PriceDiffPercent       float64 `json:"price_diff_percent"`
+    ClosestPriceItemIlvl   int     `json:"closest_item_ilvl"`
+    ClosestPriceItemBuyout int     `json:"closest_item_buyout"`
 }
 
 type DecoratedAuctionData struct {
@@ -28,12 +30,14 @@ type ItemGroup []*DecAucItem
 
 func (dai *DecAucItem) String() string {
     return fmt.Sprintf(
-        "%s - %d ilvl - price: %dg, diff: %dg, diff%%: %.2f",
+        "%s - %d ilvl - %dg, diff: %dg, diff%%: %.2f, closest item: %d ilvl - %dg",
         dai.Name,
         dai.Ilvl,
         dai.Buyout/10000,
         dai.PriceDiff/10000,
         dai.PriceDiffPercent,
+        dai.ClosestPriceItemIlvl,
+        dai.ClosestPriceItemBuyout/10000,
     )
 }
 
@@ -76,11 +80,11 @@ func (dad *DecoratedAuctionData) String() string {
     return strings.Join(msgs, "\n")
 }
 
-func (dad *DecoratedAuctionData) GroupItemsByNameAndIlvl() map[string]ItemGroup {
+func (dad *DecoratedAuctionData) GroupItems(hashFn func(item *DecAucItem) string) map[string]ItemGroup {
     groups := make(map[string]ItemGroup, 0)
 
     for _, item := range dad.Items {
-        itemHash := fmt.Sprintf("%s-%d", item.Name, item.Ilvl)
+        itemHash := hashFn(item)
         if _, ok := groups[itemHash]; !ok {
             groups[itemHash] = make([]*DecAucItem, 0)
         }
@@ -89,6 +93,18 @@ func (dad *DecoratedAuctionData) GroupItemsByNameAndIlvl() map[string]ItemGroup 
     }
 
     return groups
+}
+
+func (dad *DecoratedAuctionData) GroupItemsByNameAndIlvl() map[string]ItemGroup {
+    return dad.GroupItems(func(item *DecAucItem) string {
+        return fmt.Sprintf("%s-%d", item.Name, item.Ilvl)
+    })
+}
+
+func (dad *DecoratedAuctionData) GroupItemsByName() map[string]ItemGroup {
+    return dad.GroupItems(func(item *DecAucItem) string {
+        return item.Name
+    })
 }
 
 // Item group methods
@@ -103,6 +119,32 @@ func (g ItemGroup) Less(i, j int) bool {
 }
 func (g ItemGroup) Swap(i, j int) {
     g[i], g[j] = g[j], g[i]
+}
+
+func (g ItemGroup) filterByIlvl(ilvl int) ItemGroup {
+    res := make([]*DecAucItem, 0)
+    for _, item := range g {
+        if item.Ilvl == ilvl {
+            res = append(res, item)
+        }
+    }
+
+    return res
+}
+
+func (g ItemGroup) getIlvls() []int {
+    unique := make(map[int]bool, 0)
+    for _, item := range g {
+        unique[item.Ilvl] = true
+    }
+
+    res := make([]int, len(unique))
+    for k := range unique {
+        res = append(res, k)
+    }
+
+    sort.Ints(res)
+    return res
 }
 
 func (g ItemGroup) getOutlierBorder() float64 {
@@ -129,7 +171,58 @@ func (g ItemGroup) findNextPriceHigherThan(price int) int {
     return nextPrice
 }
 
-func (g ItemGroup) FindOutlier() *DecAucItem {
+func (g ItemGroup) getMinPrice() int {
+    minPrice := 10_000_000_00_00 // gold cap
+    for _, item := range g {
+        if item.Price < minPrice {
+            minPrice = item.Price
+        }
+    }
+
+    return minPrice
+}
+
+type outlierResult struct {
+    ilvl     int
+    minPrice int
+    outlier  *DecAucItem
+}
+
+func (g ItemGroup) FindOutliers() []*DecAucItem {
+    outlierResults := make([]outlierResult, 0)
+
+    ilvls := g.getIlvls()
+    for _, ilvl := range ilvls {
+        ilvlG := g.filterByIlvl(ilvl)
+        outlier := ilvlG.findOutlierInIlvlGroup()
+        outlierResults = append(outlierResults, outlierResult{
+            ilvl:     ilvl,
+            minPrice: g.getMinPrice(),
+            outlier:  outlier,
+        })
+    }
+
+    res := make([]*DecAucItem, 0)
+    for _, outlierResult := range outlierResults {
+        if outlierResult.outlier == nil {
+            continue
+        }
+
+        closestOtherIlvlPrice := 0
+        for _, innerOutlierResult := range outlierResults {
+            if closestOtherIlvlPrice == 0 || innerOutlierResult.minPrice < closestOtherIlvlPrice {
+                outlierResult.outlier.ClosestPriceItemIlvl = innerOutlierResult.ilvl
+                outlierResult.outlier.ClosestPriceItemBuyout = innerOutlierResult.minPrice
+                closestOtherIlvlPrice = innerOutlierResult.minPrice
+            }
+        }
+        res = append(res, outlierResult.outlier)
+    }
+
+    return res
+}
+
+func (g ItemGroup) findOutlierInIlvlGroup() *DecAucItem {
     sort.Sort(g)
     outlierBorder := g.getOutlierBorder()
 

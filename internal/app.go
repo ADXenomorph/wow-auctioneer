@@ -108,8 +108,8 @@ func (app *App) FindBOEOutliers(data *DecoratedAuctionData) *DecoratedAuctionDat
     groups := data.GroupItemsByNameAndIlvl()
 
     for _, group := range groups {
-        outlier := group.FindOutlier()
-        if outlier != nil {
+        outliers := group.FindOutliers()
+        for _, outlier := range outliers {
             res = append(res, outlier)
         }
     }
