@@ -105,7 +105,7 @@ func (app *App) DecorateAuctionData(data *client.AuctionData) (*DecoratedAuction
 func (app *App) FindBOEOutliers(data *DecoratedAuctionData) *DecoratedAuctionData {
     res := make([]*DecAucItem, 0)
 
-    groups := data.GroupItemsByNameAndIlvl()
+    groups := data.GroupItemsByName()
 
     for _, group := range groups {
         outliers := group.FindOutliers()

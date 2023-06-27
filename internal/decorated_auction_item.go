@@ -12,12 +12,14 @@ import (
 
 type DecAucItem struct {
     client.AuctionsDetail
-    Name                   string  `json:"name"`
-    Ilvl                   int     `json:"ilvl"`
-    PriceDiff              int     `json:"price_diff"`
-    PriceDiffPercent       float64 `json:"price_diff_percent"`
-    ClosestPriceItemIlvl   int     `json:"closest_item_ilvl"`
-    ClosestPriceItemBuyout int     `json:"closest_item_buyout"`
+    Name                     string  `json:"name"`
+    Ilvl                     int     `json:"ilvl"`
+    PriceDiff                int     `json:"price_diff"`
+    PriceDiffPercent         float64 `json:"price_diff_percent"`
+    ClosestIlvl              int     `json:"closest_ilvl"`
+    ClosestBuyout            int     `json:"closest_buyout"`
+    ClosestBuyoutDiff        int     `json:"closest_buyout_diff"`
+    ClosestBuyoutDiffPercent float64 `json:"closest_buy_diff_percent"`
 }
 
 type DecoratedAuctionData struct {
@@ -30,14 +32,16 @@ type ItemGroup []*DecAucItem
 
 func (dai *DecAucItem) String() string {
     return fmt.Sprintf(
-        "%s - %d ilvl - %dg, diff: %dg, diff%%: %.2f, closest item: %d ilvl - %dg",
+        "%s - %d ilvl - %dg, diff: %dg(%.2f%%), closest item: %d ilvl - %dg, diff: %dg(%.2f%%)",
         dai.Name,
         dai.Ilvl,
         dai.Buyout/10000,
         dai.PriceDiff/10000,
         dai.PriceDiffPercent,
-        dai.ClosestPriceItemIlvl,
-        dai.ClosestPriceItemBuyout/10000,
+        dai.ClosestIlvl,
+        dai.ClosestBuyout/10000,
+        dai.ClosestBuyoutDiff/10000,
+        dai.ClosestBuyoutDiffPercent,
     )
 }
 
@@ -138,7 +142,7 @@ func (g ItemGroup) getIlvls() []int {
         unique[item.Ilvl] = true
     }
 
-    res := make([]int, len(unique))
+    res := make([]int, 0)
     for k := range unique {
         res = append(res, k)
     }
@@ -174,8 +178,8 @@ func (g ItemGroup) findNextPriceHigherThan(price int) int {
 func (g ItemGroup) getMinPrice() int {
     minPrice := 10_000_000_00_00 // gold cap
     for _, item := range g {
-        if item.Price < minPrice {
-            minPrice = item.Price
+        if item.Buyout < minPrice {
+            minPrice = item.Buyout
         }
     }
 
@@ -197,7 +201,7 @@ func (g ItemGroup) FindOutliers() []*DecAucItem {
         outlier := ilvlG.findOutlierInIlvlGroup()
         outlierResults = append(outlierResults, outlierResult{
             ilvl:     ilvl,
-            minPrice: g.getMinPrice(),
+            minPrice: ilvlG.getMinPrice(),
             outlier:  outlier,
         })
     }
@@ -210,9 +214,13 @@ func (g ItemGroup) FindOutliers() []*DecAucItem {
 
         closestOtherIlvlPrice := 0
         for _, innerOutlierResult := range outlierResults {
-            if closestOtherIlvlPrice == 0 || innerOutlierResult.minPrice < closestOtherIlvlPrice {
-                outlierResult.outlier.ClosestPriceItemIlvl = innerOutlierResult.ilvl
-                outlierResult.outlier.ClosestPriceItemBuyout = innerOutlierResult.minPrice
+            if innerOutlierResult.ilvl != outlierResult.ilvl &&
+                (closestOtherIlvlPrice == 0 || innerOutlierResult.minPrice < closestOtherIlvlPrice) {
+                outlierResult.outlier.ClosestIlvl = innerOutlierResult.ilvl
+                outlierResult.outlier.ClosestBuyout = innerOutlierResult.minPrice
+                outlierResult.outlier.ClosestBuyoutDiff = outlierResult.outlier.Buyout - innerOutlierResult.minPrice
+                outlierResult.outlier.ClosestBuyoutDiffPercent =
+                    100 - (float64(innerOutlierResult.minPrice) * 100 / float64(outlierResult.outlier.Buyout))
                 closestOtherIlvlPrice = innerOutlierResult.minPrice
             }
         }
