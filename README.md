@@ -1,6 +1,6 @@
 # Auctioneer
 
-Уnvironment variables:
+Environment variables:
   ```
 AUCTIONEER_BLIZZARD_EU_API_URL = "https://eu.api.blizzard.com"
 AUCTIONEER_BLIZZARD_US_API_URL = "https://us.api.blizzard.com"
