@@ -164,7 +164,7 @@ func (app *App) ScanForOutliers(server string) (*DecoratedAuctionData, error) {
         return nil, errors.Wrap(err, "app.DecorateAuctionData")
     }
     // decoratedAuctions = decoratedAuctions.FilterByName("Devoted Warden")
-    decoratedAuctions = decoratedAuctions.FilterByIlvl(400, 450)
+    decoratedAuctions = decoratedAuctions.FilterByIlvl(420, 490)
     decoratedAuctions = app.FindBOEOutliers(decoratedAuctions)
 
     return decoratedAuctions, nil
