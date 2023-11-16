@@ -17,6 +17,9 @@ var (
     server       string
     withTelegram bool
     cachePath    string
+    fromIlvl     int
+    toIlvl       int
+    minBuyout    int
 
     scanCmd = &cobra.Command{
         Use:   "scan",
@@ -46,7 +49,7 @@ var (
                 return errors.Wrap(err, "app.Setup")
             }
 
-            decoratedAuctions, err := app.ScanForOutliers(server)
+            decoratedAuctions, err := app.ScanForOutliers(server, fromIlvl, toIlvl, minBuyout)
             if err != nil {
                 return errors.Wrap(err, "app.ScanForOutliers")
             }
@@ -78,4 +81,7 @@ func init() {
     scanCmd.PersistentFlags().StringVar(&server, "server", "", "Server name. E.g 'Argent Dawn'")
     scanCmd.PersistentFlags().BoolVarP(&withTelegram, "telegram", "t", false, "Send results to Telegram")
     scanCmd.PersistentFlags().StringVar(&cachePath, "cachePath", "./.cache", "Path to cache dir. Default is './.cache'")
+    scanCmd.PersistentFlags().IntVar(&fromIlvl, "fromIlvl", 430, "Min ilvl to scan")
+    scanCmd.PersistentFlags().IntVar(&toIlvl, "toIlvl", 490, "Max ilvl to scan")
+    scanCmd.PersistentFlags().IntVar(&minBuyout, "minBuyout", 30_000_00_00, "Min buyout to scan")
 }
