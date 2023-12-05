@@ -1,8 +1,8 @@
 name: Auctioneer scheduled scan
 
-on:
-  schedule:
-    - cron: '0 2-16 * * *'
+#on:
+#  schedule:
+#    - cron: '0 2-16 * * *'
 
 jobs:
   run-scan:
